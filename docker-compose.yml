@@ -8,8 +8,9 @@ services:
       - CPU_CORES=${CPU_CORES}
       - RAM=${RAM}
       - DISK_SIZE=${DISK_SIZE}
-      - DISK_SELECTION=
     restart: unless-stopped
+    cap_add: 
+      - NET_ADMIN  # Для работы с iptables
     volumes:
       - /etc/machine-id:/etc/machine-id
       - /var/lib/dbus/machine-id:/var/lib/dbus/machine-id
