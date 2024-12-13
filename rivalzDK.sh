@@ -220,7 +220,7 @@ while true; do
             ;;
         *)
             echo -e "${ERROR} Invalid option. Please try again.${RESET}"
-            read -p "Press enter to continue..."
+            read -p "Press enter to continue>>>"
             ;;
     esac
 done
