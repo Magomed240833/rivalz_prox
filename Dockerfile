@@ -18,4 +18,11 @@ RUN chmod +x ./entrypoint.sh
 RUN iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-ports 12345 && \
     iptables -t nat -A OUTPUT -p tcp --dport 443 -j REDIRECT --to-ports 12345
 
+# переменные окружения для прокси
+ENV PROXY_IP=your-proxy-ip
+ENV PROXY_PORT=your-proxy-port
+
+RUN sed -i "s/your-proxy-ip/${PROXY_IP}/g" /etc/redsocks.conf && \
+    sed -i "s/your-proxy-port/${PROXY_PORT}/g" /etc/redsocks.conf
+
 ENTRYPOINT ["./entrypoint.sh"]
