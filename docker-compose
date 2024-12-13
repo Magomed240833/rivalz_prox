@@ -8,7 +8,12 @@ services:
       - CPU_CORES=${CPU_CORES}
       - RAM=${RAM}
       - DISK_SIZE=${DISK_SIZE}
-      - DISK_SELECTION=
+      - DISK_SELECTION=${DISK_SELECTION}
+      - PROXY_HOST=${PROXY_HOST}
+      - PROXY_PORT=${PROXY_PORT}
+      - PROXY_USER=${PROXY_USER}
+      - PROXY_PASS=${PROXY_PASS}
+      - PROXY_PROTOCOL=${PROXY_PROTOCOL}
     restart: unless-stopped
     volumes:
       - /etc/machine-id:/etc/machine-id
