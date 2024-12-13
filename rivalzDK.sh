@@ -14,29 +14,12 @@ RESET='\033[0m'
 CHECKMARK="✅"
 ERROR="❌"
 PROGRESS="⏳"
-INSTALL="🛠️"
-STOP="⏹️"
+INSTALL="🛠"
+STOP="⏹"
 RESTART="🔄"
 LOGS="📄"
 EXIT="🚪"
-INFO="ℹ️"
-
-# ----------------------------
-# Function to display ASCII logo and Telegram link
-# ----------------------------
-display_ascii() {
-    clear
-    echo -e "    ${RED}    ____  __ __    _   ______  ____  ___________${RESET}"
-    echo -e "    ${GREEN}   / __ \\/ //_/   / | / / __ \\/ __ \\/ ____/ ___/${RESET}"
-    echo -e "    ${BLUE}  / / / / ,<     /  |/ / / / / / / / __/  \\__ \\ ${RESET}"
-    echo -e "    ${YELLOW} / /_/ / /| |   / /|  / /_/ / /_/ / /___ ___/ / ${RESET}"
-    echo -e "    ${MAGENTA}/_____/_/ |_|  /_/ |_/\____/_____/_____//____/  ${RESET}"
-    echo -e "    ${MAGENTA}🚀 Follow us on Telegram: https://t.me/dknodes${RESET}"
-    echo -e "    ${MAGENTA}📢 Follow us on Twitter: https://x.com/dknodes${RESET}"
-    echo -e ""
-    echo -e "    ${GREEN}Welcome to the Rivalz Node Installation Wizard!${RESET}"
-    echo -e ""
-}
+INFO="ℹ"
 
 # ----------------------------
 # Install Docker and Docker Compose
@@ -63,30 +46,42 @@ install_node() {
     echo -e "${INSTALL} Installing Rivalz Node...${RESET}"
     install_docker
 
-    # Prompt for environment variables
+    # Запрашиваем данные для .env файла
     echo -e "${INFO} Please provide the following configuration details:${RESET}"
     read -p "Enter your WALLET_ADDRESS: " WALLET_ADDRESS
     read -p "Enter the number of CPU_CORES: " CPU_CORES
     read -p "Enter the amount of RAM (e.g., 4G): " RAM
     read -p "Enter the DISK_SIZE (e.g., 10G): " DISK_SIZE
 
-    # Create .env file
+    # Прокси данные
+    read -p "Enter the proxy IP address (optional): " PROXY_IP
+    read -p "Enter the proxy port (optional): " PROXY_PORT
+    read -p "Enter the proxy type (http/socks5, optional): " PROXY_TYPE
+    read -p "Enter the proxy username (optional): " PROXY_USER
+    read -p "Enter the proxy password (optional): " PROXY_PASS
+
+    # Создаем .env файл
     cat > .env <<EOL
 WALLET_ADDRESS=${WALLET_ADDRESS}
 CPU_CORES=${CPU_CORES}
 RAM=${RAM}
 DISK_SIZE=${DISK_SIZE}
+PROXY_IP=${PROXY_IP}
+PROXY_PORT=${PROXY_PORT}
+PROXY_TYPE=${PROXY_TYPE}
+PROXY_USER=${PROXY_USER}
+PROXY_PASS=${PROXY_PASS}
 EOL
 
     echo -e "${CHECKMARK} .env file created with your configurations.${RESET}"
 
-    # Check for docker-compose.yml
+    # Проверяем наличие docker-compose.yml
     if [ ! -f docker-compose.yml ]; then
         echo -e "${ERROR} docker-compose.yml file not found. Please ensure it is in the current directory.${RESET}"
         exit 1
     fi
 
-    # Build and run containers
+    # Стартуем контейнеры
     docker-compose up -d --build
     echo -e "${CHECKMARK} Rivalz Node installed and running.${RESET}"
     read -p "Press enter to return to the main menu..."
@@ -100,59 +95,6 @@ stop_node() {
     docker-compose down
     echo -e "${CHECKMARK} Rivalz Node stopped.${RESET}"
     read -p "Press enter to return to the main menu..."
-}
-
-# ----------------------------
-# Restart the Rivalz Node
-# ----------------------------
-restart_node() {
-    echo -e "${RESTART} Restarting Rivalz Node...${RESET}"
-    docker-compose down
-    docker-compose up -d
-    echo -e "${CHECKMARK} Rivalz Node restarted successfully.${RESET}"
-    read -p "Press enter to return to the main menu..."
-}
-
-# ----------------------------
-# View Rivalz Node Logs
-# ----------------------------
-view_logs() {
-    echo -e "${LOGS} Viewing last 30 logs of Rivalz Node...${RESET}"
-    docker-compose logs --tail 30
-#    echo -e "${LOGS} Streaming logs in real-time... Press Ctrl+C to stop.${RESET}"
-#    docker-compose logs -f
-    read -p "Press enter to return to the main menu..."
-}
-
-# ----------------------------
-# Display Node ID and .env Data
-# ----------------------------
-display_id_env() {
-    echo -e "${INFO} Displaying Node ID and Configuration Data...${RESET}"
-    echo -e "${GREEN}ℹ️  Node ID:${RESET}"
-    cat /etc/machine-id
-    echo -e "${GREEN}\nℹ️  .env Configuration:${RESET}"
-    if [ -f .env ]; then
-        cat .env
-    else
-        echo -e "${ERROR} .env file not found.${RESET}"
-    fi
-    read -p "Press enter to return to the main menu..."
-}
-
-# ----------------------------
-# Draw Menu Borders
-# ----------------------------
-draw_top_border() {
-    echo -e "${CYAN}╔══════════════════════════════════════════════════════╗${RESET}"
-}
-
-draw_middle_border() {
-    echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${RESET}"
-}
-
-draw_bottom_border() {
-    echo -e "${CYAN}╚══════════════════════════════════════════════════════╝${RESET}"
 }
 
 # ----------------------------
@@ -204,5 +146,5 @@ while true; do
             echo -e "${ERROR} Invalid option. Please try again.${RESET}"
             read -p "Press enter to continue..."
             ;;
-    esac
+    esac
 done
