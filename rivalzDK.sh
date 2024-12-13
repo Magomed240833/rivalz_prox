@@ -14,12 +14,48 @@ RESET='\033[0m'
 CHECKMARK="✅"
 ERROR="❌"
 PROGRESS="⏳"
-INSTALL="🛠"
-STOP="⏹"
+INSTALL="🛠️"
+STOP="⏹️"
 RESTART="🔄"
 LOGS="📄"
 EXIT="🚪"
-INFO="ℹ"
+INFO="ℹ️"
+
+# ----------------------------
+# Function to display ASCII logo and Telegram link
+# ----------------------------
+display_ascii() {
+    clear
+    echo -e "    ${RED}    ____  __ __    _   ______  ____  ___________${RESET}"
+    echo -e "    ${GREEN}   / __ \\/ //_/   / | / / __ \\/ __ \\/ ____/ ___/${RESET}"
+    echo -e "    ${BLUE}  / / / / ,<     /  |/ / / / / / / / __/  \\__ \\ ${RESET}"
+    echo -e "    ${YELLOW} / /_/ / /| |   / /|  / /_/ / /_/ / /___ ___/ / ${RESET}"
+    echo -e "    ${MAGENTA}/_____/_/ |_|  /_/ |_/\____/_____/_____//____/  ${RESET}"
+    echo -e "    ${MAGENTA}🚀 Follow us on Telegram: https://t.me/dknodes${RESET}"
+    echo -e "    ${MAGENTA}📢 Follow us on Twitter: https://x.com/dknodes${RESET}"
+    echo -e ""
+    echo -e "    ${GREEN}Welcome to the Rivalz Node Installation Wizard!${RESET}"
+    echo -e ""
+}
+
+# ----------------------------
+# Prompt for Proxy Configuration
+# ----------------------------
+set_proxy() {
+    echo -e "${INFO} Do you want to configure a proxy? (y/n): ${RESET}"
+    read -r proxy_choice
+    if [[ "$proxy_choice" =~ ^[Yy]$ ]]; then
+        echo -e "${INFO} Please enter your proxy in the format [ip:port:user:password]: ${RESET}"
+        read -r proxy
+
+        IFS=':' read -r proxy_ip proxy_port proxy_user proxy_pass <<< "$proxy"
+
+        export http_proxy="http://$proxy_user:$proxy_pass@$proxy_ip:$proxy_port"
+        export https_proxy="http://$proxy_user:$proxy_pass@$proxy_ip:$proxy_port"
+        
+        echo -e "${CHECKMARK} Proxy set to: $http_proxy"
+    fi
+}
 
 # ----------------------------
 # Install Docker and Docker Compose
@@ -46,42 +82,30 @@ install_node() {
     echo -e "${INSTALL} Installing Rivalz Node...${RESET}"
     install_docker
 
-    # Запрашиваем данные для .env файла
+    # Prompt for environment variables
     echo -e "${INFO} Please provide the following configuration details:${RESET}"
     read -p "Enter your WALLET_ADDRESS: " WALLET_ADDRESS
     read -p "Enter the number of CPU_CORES: " CPU_CORES
     read -p "Enter the amount of RAM (e.g., 4G): " RAM
     read -p "Enter the DISK_SIZE (e.g., 10G): " DISK_SIZE
 
-    # Прокси данные
-    read -p "Enter the proxy IP address (optional): " PROXY_IP
-    read -p "Enter the proxy port (optional): " PROXY_PORT
-    read -p "Enter the proxy type (http/socks5, optional): " PROXY_TYPE
-    read -p "Enter the proxy username (optional): " PROXY_USER
-    read -p "Enter the proxy password (optional): " PROXY_PASS
-
-    # Создаем .env файл
+    # Create .env file
     cat > .env <<EOL
 WALLET_ADDRESS=${WALLET_ADDRESS}
 CPU_CORES=${CPU_CORES}
 RAM=${RAM}
 DISK_SIZE=${DISK_SIZE}
-PROXY_IP=${PROXY_IP}
-PROXY_PORT=${PROXY_PORT}
-PROXY_TYPE=${PROXY_TYPE}
-PROXY_USER=${PROXY_USER}
-PROXY_PASS=${PROXY_PASS}
 EOL
 
     echo -e "${CHECKMARK} .env file created with your configurations.${RESET}"
 
-    # Проверяем наличие docker-compose.yml
+    # Check for docker-compose.yml
     if [ ! -f docker-compose.yml ]; then
         echo -e "${ERROR} docker-compose.yml file not found. Please ensure it is in the current directory.${RESET}"
         exit 1
     fi
 
-    # Стартуем контейнеры
+    # Build and run containers
     docker-compose up -d --build
     echo -e "${CHECKMARK} Rivalz Node installed and running.${RESET}"
     read -p "Press enter to return to the main menu..."
@@ -95,6 +119,57 @@ stop_node() {
     docker-compose down
     echo -e "${CHECKMARK} Rivalz Node stopped.${RESET}"
     read -p "Press enter to return to the main menu..."
+}
+
+# ----------------------------
+# Restart the Rivalz Node
+# ----------------------------
+restart_node() {
+    echo -e "${RESTART} Restarting Rivalz Node...${RESET}"
+    docker-compose down
+    docker-compose up -d
+    echo -e "${CHECKMARK} Rivalz Node restarted successfully.${RESET}"
+    read -p "Press enter to return to the main menu..."
+}
+
+# ----------------------------
+# View Rivalz Node Logs
+# ----------------------------
+view_logs() {
+    echo -e "${LOGS} Viewing last 30 logs of Rivalz Node...${RESET}"
+    docker-compose logs --tail 30
+    read -p "Press enter to return to the main menu..."
+}
+
+# ----------------------------
+# Display Node ID and .env Data
+# ----------------------------
+display_id_env() {
+    echo -e "${INFO} Displaying Node ID and Configuration Data...${RESET}"
+    echo -e "${GREEN}ℹ️  Node ID:${RESET}"
+    cat /etc/machine-id
+    echo -e "${GREEN}\nℹ️  .env Configuration:${RESET}"
+    if [ -f .env ]; then
+        cat .env
+    else
+        echo -e "${ERROR} .env file not found.${RESET}"
+    fi
+    read -p "Press enter to return to the main menu..."
+}
+
+# ----------------------------
+# Draw Menu Borders
+# ----------------------------
+draw_top_border() {
+    echo -e "${CYAN}╔══════════════════════════════════════════════════════╗${RESET}"
+}
+
+draw_middle_border() {
+    echo -e "${CYAN}╠══════════════════════════════════════════════════════╣${RESET}"
+}
+
+draw_bottom_border() {
+    echo -e "${CYAN}╚══════════════════════════════════════════════════════╝${RESET}"
 }
 
 # ----------------------------
@@ -120,6 +195,7 @@ show_menu() {
 # Main Loop
 # ----------------------------
 while true; do
+    set_proxy # Ask the user if they want to set a proxy
     show_menu
     read -r choice
     case $choice in
@@ -146,5 +222,5 @@ while true; do
             echo -e "${ERROR} Invalid option. Please try again.${RESET}"
             read -p "Press enter to continue..."
             ;;
-    esac
+    esac
 done
